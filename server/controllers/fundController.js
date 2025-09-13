@@ -3,31 +3,58 @@ import FundLatestNav from "../db/models/fund_latest_nav.js";
 import FundNavHistory from "../db/models/fund_nav_history.js";
 import { successResponse, errorResponse } from "../utils/responseHandler.js";
 
+
+
 export const getFunds = async (req, res) => {
     try {
         const { search = '', page = 1, limit = 20 } = req.query;
 
-        const skip = (page - 1) * limit;
+        const pageNumber = parseInt(page, 10) || 1;
+        const limitNumber = parseInt(limit, 10) || 20;
+        const skip = (pageNumber - 1) * limitNumber;
+
         const query = search
             ? { schemeName: { $regex: search, $options: "i" } }
             : {};
-        const fundList = await funds.find(query).skip(skip).limit(Number(limit));
 
-        let response = successResponse({
+        // Get total count for pagination
+        const totalFunds = await funds.countDocuments(query);
+
+        // Fetch funds with skip & limit
+        const fundList = await funds.find(query).skip(skip).limit(limitNumber);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalFunds / limitNumber);
+
+        const response = successResponse({
             statusCode: 200,
             message: "Funds fetched successfully",
-            data: fundList
+            data: {
+                funds: fundList,
+                pagination: {
+                    currentPage: pageNumber,
+                    totalPages,
+                    totalFunds,
+                    hasNext: pageNumber < totalPages,
+                    hasPrev: pageNumber > 1
+                }
+            }
         });
-        return res.status(200).send(response);
+
+        return res.status(200).json(response);
+
     } catch (error) {
         console.error("Error fetching funds:", error);
-        let response = errorResponse({
+
+        const response = errorResponse({
             statusCode: 500,
             message: "Internal Server Error"
         });
-        return res.status(500).send(response);
+
+        return res.status(500).json(response);
     }
 };
+
 
 export const getNavHistory = async (req, res) => {
     try {

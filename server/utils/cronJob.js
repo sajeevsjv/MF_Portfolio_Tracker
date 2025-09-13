@@ -1,8 +1,8 @@
-const cron = require('node-cron');
-const Portfolio = require('../db/models/portfolio.js');
-const { fetchAndSaveNAVHistory } = require('../services/navService');
+import cron  from 'node-cron';
+import Portfolio from '../db/models/portfolio.js';
+import {fetchAndSaveNAVHistory} from './importDatas/importNav.js';
 
-export default setupNavUpdateCronJob = () =>{
+const setupNavUpdateCronJob = () =>{
   cron.schedule('0 0 * * *', async () => {  // Daily at midnight IST
     console.log('Running scheduled NAV update...');
 
@@ -19,3 +19,5 @@ export default setupNavUpdateCronJob = () =>{
     }
   });
 }
+
+export default setupNavUpdateCronJob;

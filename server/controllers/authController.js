@@ -3,19 +3,27 @@ import { successResponse, errorResponse } from "../utils/responseHandler.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-
 export const signup = async (req, res) => {
-
     try {
         let { name, email, password } = req.body;
+        console.log("req body for signup",req.body);
 
         if (!name || !email || !password) {
-            let response = errorResponse({
+            const response = errorResponse({
                 statusCode: 400,
-                message: "All fields are required"
-            })
-            return res.status(response.statusCode).send(response);
+                message: 'All fields are required'
+            });
+            return res.status(response.statusCode).json(response);
+        }
 
+        // Check if user already exists
+        const existingUser = await user.findOne({ email });
+        if (existingUser) {
+            const response = errorResponse({
+                statusCode: 400,
+                message: 'Email is already registered'
+            });
+            return res.status(response.statusCode).json(response);
         }
 
         password = await bcrypt.hash(password, 10);
@@ -27,21 +35,29 @@ export const signup = async (req, res) => {
         });
         await newUser.save();
 
-        let response = successResponse({
+        const response = successResponse({
             statusCode: 201,
-            message: "Signup successful",
-            data: newUser
+            message: 'Signup successful',
+            data: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+                createdAt: newUser.createdAt
+            }
         });
-        return res.status(response.statusCode).send(response);
+
+        return res.status(response.statusCode).json(response);
+
     } catch (error) {
-        let response = errorResponse({
+        const response = errorResponse({
             statusCode: 500,
             message: error.message
-        })
-        return res.status(response.statusCode).send(response);
+        });
+        return res.status(response.statusCode).json(response);
     }
+};
 
-}
 
 export const login = async (req, res) => {
     try {
