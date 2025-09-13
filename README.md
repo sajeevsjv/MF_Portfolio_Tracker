@@ -106,7 +106,8 @@ We are a mutual fund wealth and fintech company operating in the Indian financia
    
    git clone https://github.com/sajeevsjv/MF_Portfolio_Tracker.git
 
-   - cd server
+   cd server
+   
    npm install
 
    npm run import-funds (additional script for frtching funds and updt in db)
